@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#9dcfe0">
+  <title>جزيرة المكعبات</title>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #9dcfe0;
+    }
+
+    #craft-game {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    #craft-game canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      outline: none;
+    }
+
+    #craft-error {
+      position: fixed;
+      z-index: 10010;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: #642f2b;
+      background: #fff4ec;
+      direction: rtl;
+      font: 16px/1.8 Tahoma, Arial, sans-serif;
+      text-align: center;
+    }
+
+    #craft-error[hidden] {
+      display: none;
+    }
+
+    #craft-error > div {
+      max-width: 520px;
+      padding: 24px;
+      background: #fff;
+      border: 1px solid #f0d7c9;
+      border-radius: 18px;
+      box-shadow: 0 12px 35px rgba(92, 51, 36, .12);
+    }
+  </style>
+</head>
+<body>
+  <main id="craft-game" aria-label="لعبة جزيرة المكعبات"></main>
+  <section id="craft-error" role="alert" hidden>
+    <div>
+      <strong>تعذر تشغيل جزيرة المكعبات</strong>
+      <p data-error-message>حدث خطأ أثناء تجهيز اللعبة. تحقق من اتصالك ثم أعد تحميل الصفحة.</p>
+    </div>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="./world.js"></script>
+  <script src="./player.js"></script>
+  <script src="./enemies.js"></script>
+  <script src="./ui.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      const errorPanel = document.getElementById("craft-error");
+      const errorMessage = errorPanel.querySelector("[data-error-message]");
+      let renderer;
+      let world;
+      let player;
+      let enemies;
+      let ui;
+      let animationFrame = 0;
+      let disposed = false;
+
+      function showError(message) {
+        errorMessage.textContent = message || "حدث خطأ أثناء تجهيز اللعبة. تحقق من اتصالك ثم أعد تحميل الصفحة.";
+        errorPanel.hidden = false;
+        console.error("تعذر تهيئة جزيرة المكعبات:", message);
+      }
+
+      function resize() {
+        if (!renderer) return;
+        const width = Math.max(1, window.innerWidth);
+        const height = Math.max(1, window.innerHeight);
+        renderer.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.renderer.setSize(width, height, false);
+        renderer.camera.aspect = width / height;
+        renderer.camera.updateProjectionMatrix();
+      }
+
+      function animate() {
+        if (disposed) return;
+        animationFrame = window.requestAnimationFrame(animate);
+        const deltaTime = Math.min(renderer.clock.getDelta(), 0.05);
+        ui.update(deltaTime);
+        renderer.renderer.render(renderer.scene, renderer.camera);
+      }
+
+      try {
+        if (!window.THREE) throw new Error("لم يتم تحميل Three.js. تحقق من اتصال الإنترنت.");
+        const gameElement = document.getElementById("craft-game");
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 120);
+        const webglRenderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
+        webglRenderer.outputEncoding = THREE.sRGBEncoding;
+        webglRenderer.shadowMap.enabled = true;
+        webglRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        webglRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        webglRenderer.setSize(window.innerWidth, window.innerHeight, false);
+        webglRenderer.domElement.setAttribute("aria-label", "مشهد اللعب؛ انقر لبدء التحكم");
+        gameElement.appendChild(webglRenderer.domElement);
+
+        world = CraftWorld.createWorld(scene);
+        player = CraftPlayer.createPlayer(camera, webglRenderer.domElement, world, {
+          lockOnClick: true,
+          onPointerLockError: error => {
+            console.warn("تعذر قفل مؤشر الماوس:", error);
+          }
+        });
+        enemies = CraftEnemies.createEnemies(scene, camera, webglRenderer.domElement, world, player, {
+          onGameOver: () => {
+            if (document.pointerLockElement === webglRenderer.domElement) document.exitPointerLock();
+          }
+        });
+        ui = CraftUI.createUI(player, enemies, { stylesheetUrl: "./style.css" });
+
+        renderer = {
+          renderer: webglRenderer,
+          scene,
+          camera,
+          clock: new THREE.Clock()
+        };
+        resize();
+        window.addEventListener("resize", resize);
+        animate();
+
+        window.addEventListener("pagehide", function cleanup() {
+          if (disposed) return;
+          disposed = true;
+          window.cancelAnimationFrame(animationFrame);
+          window.removeEventListener("resize", resize);
+          if (ui) ui.dispose();
+          if (enemies) enemies.dispose();
+          if (player) player.dispose();
+          if (world) world.dispose();
+          webglRenderer.dispose();
+          window.removeEventListener("pagehide", cleanup);
+        }, { once: true });
+      } catch (error) {
+        showError(error && error.message);
+      }
+    })();
+  </script>
+</body>
+</html>

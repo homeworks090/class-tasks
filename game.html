@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#dcecf3">
+  <title>برج المكعبات</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #273b4b;
+      --muted: #647987;
+      --glass: rgba(255, 255, 255, .76);
+      --line: rgba(255, 255, 255, .9);
+      --teal: #307c7b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+
+    body {
+      color: var(--ink);
+      background: #dcecf3;
+      font-family: Tahoma, Arial, sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    button { font: inherit; }
+
+    .game {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 50% 43%, rgba(255, 255, 255, .55), transparent 47%),
+        linear-gradient(180deg, #d8edf2 0%, #edf3e9 65%, #f6e7d5 100%);
+      isolation: isolate;
+    }
+
+    #game-canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      outline: none;
+      touch-action: none;
+    }
+
+    .topbar {
+      position: absolute;
+      z-index: 2;
+      top: max(18px, env(safe-area-inset-top));
+      right: max(18px, env(safe-area-inset-right));
+      left: max(18px, env(safe-area-inset-left));
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .brand, .score-card, .sound-toggle {
+      border: 1px solid var(--line);
+      background: var(--glass);
+      box-shadow: 0 8px 24px rgba(47, 75, 83, .1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 15px;
+      border-radius: 16px;
+    }
+
+    .brand-icon {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border-radius: 12px;
+      background: #e1f1e5;
+      font-size: 1.2rem;
+    }
+
+    .brand-name { font-size: .97rem; font-weight: 800; }
+    .brand-caption { display: block; color: var(--muted); font-size: .7rem; }
+
+    .score-card {
+      min-width: 90px;
+      padding: 8px 16px 9px;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .score-label { display: block; color: var(--muted); font-size: .72rem; }
+    .score-value { display: block; font-size: 1.55rem; font-weight: 900; line-height: 1.25; }
+    .score-group { display: flex; align-items: flex-start; gap: 8px; pointer-events: auto; }
+    .best-card { background: rgba(255, 247, 222, .84); }
+    .best-card .score-value { color: #9a6c27; }
+
+    .sound-toggle {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      place-items: center;
+      padding: 0;
+      border-radius: 14px;
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 1.1rem;
+      pointer-events: auto;
+    }
+
+    .sound-toggle:hover { background: rgba(255, 255, 255, .94); }
+    .sound-toggle:disabled { cursor: not-allowed; opacity: .55; }
+
+    .break-timer {
+      position: absolute;
+      z-index: 2;
+      top: max(68px, calc(env(safe-area-inset-top) + 56px));
+      right: 50%;
+      padding: 7px 13px;
+      color: #526954;
+      background: var(--glass);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      box-shadow: 0 5px 16px rgba(47, 75, 83, .09);
+      font-size: .8rem;
+      font-weight: 800;
+      white-space: nowrap;
+      transform: translateX(50%);
+      pointer-events: none;
+    }
+
+    .tasks-return {
+      position: absolute;
+      z-index: 2;
+      top: max(68px, calc(env(safe-area-inset-top) + 56px));
+      left: max(18px, env(safe-area-inset-left));
+      padding: 7px 10px;
+      color: #526954;
+      background: var(--glass);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      box-shadow: 0 5px 16px rgba(47, 75, 83, .09);
+      font-size: .74rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .tasks-return:hover, .break-return:hover { background: #fff; }
+
+    .hint {
+      position: absolute;
+      z-index: 2;
+      right: 50%;
+      bottom: max(24px, env(safe-area-inset-bottom));
+      width: max-content;
+      max-width: calc(100% - 30px);
+      padding: 10px 17px;
+      color: #415965;
+      background: var(--glass);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      box-shadow: 0 6px 20px rgba(47, 75, 83, .1);
+      font-size: .84rem;
+      font-weight: 700;
+      text-align: center;
+      transform: translateX(50%);
+      pointer-events: none;
+    }
+
+    .overlay {
+      position: absolute;
+      z-index: 3;
+      inset: 0;
+      display: grid;
+      padding: 22px;
+      place-items: center;
+      background: rgba(40, 61, 69, .12);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .overlay[hidden] { display: none; }
+
+    .dialog {
+      width: min(100%, 390px);
+      padding: 29px 25px 25px;
+      background: rgba(255, 253, 247, .93);
+      border: 1px solid rgba(255, 255, 255, .96);
+      border-radius: 25px;
+      box-shadow: 0 22px 65px rgba(41, 66, 75, .2);
+      text-align: center;
+    }
+
+    .dialog-icon {
+      display: grid;
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 14px;
+      place-items: center;
+      background: #e1f0e7;
+      border-radius: 23px;
+      font-size: 2.5rem;
+    }
+
+    .dialog h1 { margin: 0; font-size: 1.65rem; letter-spacing: -.03em; }
+    .dialog p { margin: 9px 0 20px; color: var(--muted); font-size: .95rem; }
+
+    .result-summary {
+      display: grid;
+      gap: 8px;
+      padding: 12px 14px;
+      margin: 0 0 18px;
+      background: #f4f1e8;
+      border-radius: 14px;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .result-summary[hidden] { display: none; }
+    .result-row { display: flex; justify-content: space-between; gap: 12px; }
+    .result-row strong { color: var(--ink); }
+
+    .break-return {
+      display: inline-flex;
+      min-height: 46px;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      color: #375d4e;
+      background: #e1f0e7;
+      border: 1px solid #d1e7d9;
+      border-radius: 14px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .break-return[hidden] { display: none; }
+
+    .play-button {
+      min-height: 48px;
+      padding: 10px 25px;
+      color: #fff;
+      background: var(--teal);
+      border: 0;
+      border-radius: 14px;
+      box-shadow: 0 6px 14px rgba(48, 124, 123, .2);
+      cursor: pointer;
+      font-weight: 800;
+      transition: background .15s ease, transform .15s ease;
+    }
+
+    .play-button:hover { background: #286e70; }
+    .play-button:active { transform: translateY(1px); }
+    button:focus-visible { outline: 3px solid rgba(48, 124, 123, .35); outline-offset: 3px; }
+
+    @media (max-width: 480px) {
+      .topbar { top: max(12px, env(safe-area-inset-top)); right: 12px; left: 12px; }
+      .brand { gap: 8px; padding: 8px 11px; border-radius: 14px; }
+      .brand-icon { width: 32px; height: 32px; }
+      .brand-name { font-size: .87rem; }
+      .tasks-return { left: 12px; padding: 6px 9px; font-size: .7rem; }
+      .break-timer { padding: 6px 11px; font-size: .75rem; }
+      .score-group { gap: 5px; }
+      .score-card { min-width: 62px; padding: 7px 7px; border-radius: 14px; }
+      .score-value { font-size: 1.25rem; }
+      .score-label { font-size: .66rem; }
+      .sound-toggle { width: 38px; height: 40px; flex-basis: 38px; border-radius: 13px; }
+      .hint { bottom: max(17px, env(safe-area-inset-bottom)); padding: 9px 14px; font-size: .78rem; }
+      .dialog { padding: 25px 20px 21px; }
+    }
+
+    @media (max-width: 380px) {
+      .topbar { right: 8px; left: 8px; gap: 6px; }
+      .brand { gap: 6px; padding: 7px 8px; }
+      .brand-icon { width: 29px; height: 29px; }
+      .brand-name { font-size: .78rem; }
+      .brand-caption { font-size: .62rem; }
+      .tasks-return { top: max(66px, calc(env(safe-area-inset-top) + 54px)); left: 8px; }
+      .break-timer { top: max(108px, calc(env(safe-area-inset-top) + 96px)); }
+      .score-group { gap: 4px; }
+      .score-card { min-width: 54px; padding: 6px 5px; }
+      .score-label { font-size: .6rem; }
+      .score-value { font-size: 1.1rem; }
+      .sound-toggle { width: 34px; height: 36px; flex-basis: 34px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game" id="game" aria-label="لعبة برج المكعبات">
+    <canvas id="game-canvas" aria-label="ساحة اللعب ثلاثية الأبعاد"></canvas>
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">🧊</span>
+        <span><span class="brand-name">برج المكعبات</span><span class="brand-caption">ركّز وابنِ أعلى برج</span></span>
+      </div>
+      <div class="score-group">
+        <button class="sound-toggle" id="sound-toggle" type="button" aria-label="كتم الصوت" aria-pressed="false" title="كتم الصوت">🔊</button>
+        <div class="score-card" aria-live="polite">
+          <span class="score-label">النقاط</span>
+          <strong class="score-value" id="score">٠</strong>
+        </div>
+        <div class="score-card best-card" aria-live="polite">
+          <span class="score-label">أفضل نتيجة</span>
+          <strong class="score-value" id="best-score">٠</strong>
+        </div>
+      </div>
+    </header>
+
+    <a class="tasks-return" href="./index.html">رجوع للمهام</a>
+    <p class="break-timer" id="break-timer" role="timer" aria-live="off">الاستراحة ٠٥:٠٠</p>
+    <p class="hint" id="hint">اضغط على الشاشة أو زر المسافة لإيقاف المكعب</p>
+
+    <section class="overlay" id="overlay" aria-labelledby="dialog-title">
+      <div class="dialog">
+        <div class="dialog-icon" id="dialog-icon" aria-hidden="true">🏗️</div>
+        <h1 id="dialog-title">برج المكعبات</h1>
+        <p id="dialog-message">أوقف المكعب فوق البرج، وحاول بناء أعلى برج ممكن!</p>
+        <div class="result-summary" id="result-summary" hidden>
+          <div class="result-row"><span>نتيجة الجولة</span><strong id="final-score">٠</strong></div>
+          <div class="result-row"><span>أفضل نتيجة</span><strong id="final-best-score">٠</strong></div>
+        </div>
+        <button class="play-button" id="play-button" type="button">ابدأ</button>
+        <a class="break-return" id="break-return" href="./index.html" hidden>العودة إلى المهام</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    (() => {
+      const canvas = document.getElementById("game-canvas");
+      const overlay = document.getElementById("overlay");
+      const dialogIcon = document.getElementById("dialog-icon");
+      const dialogTitle = document.getElementById("dialog-title");
+      const dialogMessage = document.getElementById("dialog-message");
+      const playButton = document.getElementById("play-button");
+      const scoreDisplay = document.getElementById("score");
+      const bestScoreDisplay = document.getElementById("best-score");
+      const soundToggle = document.getElementById("sound-toggle");
+      const resultSummary = document.getElementById("result-summary");
+      const finalScoreDisplay = document.getElementById("final-score");
+      const finalBestScoreDisplay = document.getElementById("final-best-score");
+      const hint = document.getElementById("hint");
+      const breakTimerDisplay = document.getElementById("break-timer");
+      const breakReturnButton = document.getElementById("break-return");
+      const numberFormat = new Intl.NumberFormat("ar");
+      const timerNumberFormat = new Intl.NumberFormat("ar-u-nu-arab", {
+        minimumIntegerDigits: 2,
+        useGrouping: false
+      });
+      const BEST_SCORE_KEY = "cubeTowerBestScore";
+      const BREAK_DURATION_MS = 5 * 60 * 1000;
+      const breakEndsAt = Date.now() + BREAK_DURATION_MS;
+      let bestScore = 0;
+      let storageAvailable = true;
+      let soundMuted = false;
+      let audioContext = null;
+      let breakTimerExpired = false;
+      let state = "ready";
+
+      try {
+        const storedBestScore = Number.parseInt(localStorage.getItem(BEST_SCORE_KEY) || "0", 10);
+        bestScore = Number.isFinite(storedBestScore) && storedBestScore > 0 ? storedBestScore : 0;
+      } catch {
+        storageAvailable = false;
+      }
+      bestScoreDisplay.textContent = numberFormat.format(bestScore);
+
+      function finishBreak() {
+        if (breakTimerExpired) return;
+        breakTimerExpired = true;
+        state = "break-ended";
+        dialogIcon.textContent = "💪";
+        dialogTitle.textContent = "انتهت الاستراحة";
+        dialogMessage.textContent = "انتهت الاستراحة، ارجع لمهامك 💪";
+        resultSummary.hidden = true;
+        playButton.hidden = true;
+        breakReturnButton.hidden = false;
+        overlay.hidden = false;
+        hint.textContent = "حان وقت العودة إلى مهامك";
+      }
+
+      function updateBreakTimer() {
+        const remaining = Math.max(0, breakEndsAt - Date.now());
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+        const time = `${timerNumberFormat.format(minutes)}:${timerNumberFormat.format(seconds)}`;
+        breakTimerDisplay.textContent = `الاستراحة ${time}`;
+        if (remaining === 0) {
+          window.clearInterval(breakTimerInterval);
+          finishBreak();
+        }
+      }
+
+      const breakTimerInterval = window.setInterval(updateBreakTimer, 1000);
+      updateBreakTimer();
+
+      if (!window.THREE) {
+        dialogIcon.textContent = "⚠️";
+        dialogTitle.textContent = "تعذر تحميل اللعبة";
+        dialogMessage.textContent = "تحقق من اتصالك بالإنترنت ثم أعد تحميل الصفحة.";
+        playButton.hidden = true;
+        return;
+      }
+
+      const THREE = window.THREE;
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color("#dcecf3");
+      scene.fog = new THREE.Fog("#eaf1e8", 24, 58);
+
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = .82;
+
+      const camera = new THREE.PerspectiveCamera(34, window.innerWidth / window.innerHeight, .1, 100);
+      const cameraTarget = new THREE.Vector3(0, 1, 0);
+      camera.position.set(9, 9, 12);
+      camera.lookAt(cameraTarget);
+
+      scene.add(new THREE.HemisphereLight(0xfff8e9, 0x91a8a2, 1.05));
+      const sunlight = new THREE.DirectionalLight(0xfff4de, 1.35);
+      sunlight.position.set(-5, 12, 8);
+      sunlight.castShadow = true;
+      sunlight.shadow.mapSize.set(1024, 1024);
+      sunlight.shadow.camera.left = -12;
+      sunlight.shadow.camera.right = 12;
+      sunlight.shadow.camera.top = 18;
+      sunlight.shadow.camera.bottom = -12;
+      scene.add(sunlight);
+
+      const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(200, 200),
+        new THREE.MeshStandardMaterial({ color: "#ead9c6", roughness: .95 })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -.52;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      const palette = [
+        ["#b9f0d6", "#4eaa91"],
+        ["#ffd0b4", "#ed8469"],
+        ["#ffdf8a", "#e9a83f"],
+        ["#b9e4f7", "#689dca"],
+        ["#ecc9ec", "#aa78b1"],
+        ["#d0efad", "#72ad73"],
+        ["#ffc6c2", "#d76e7c"],
+        ["#c8d4ff", "#778cda"]
+      ];
+      const blockHeight = .72;
+      const startSize = 4;
+      const blocks = [];
+      const fallingPieces = [];
+      let movingBlock = null;
+      let basePlatform = null;
+      let score = 0;
+      let speed = 3.6;
+      let lastFrameTime = 0;
+
+      function makeGradientTexture(colors) {
+        const gradientCanvas = document.createElement("canvas");
+        gradientCanvas.width = 128;
+        gradientCanvas.height = 128;
+        const context = gradientCanvas.getContext("2d");
+        if (!context) throw new Error("تعذر إنشاء تدرج ألوان المكعب.");
+
+        const gradient = context.createLinearGradient(0, 0, 128, 128);
+        gradient.addColorStop(0, colors[0]);
+        gradient.addColorStop(1, colors[1]);
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, 128, 128);
+        const highlight = context.createRadialGradient(34, 26, 2, 50, 44, 92);
+        highlight.addColorStop(0, "rgba(255,255,255,.34)");
+        highlight.addColorStop(1, "rgba(255,255,255,0)");
+        context.fillStyle = highlight;
+        context.fillRect(0, 0, 128, 128);
+
+        const texture = new THREE.CanvasTexture(gradientCanvas);
+        texture.encoding = THREE.sRGBEncoding;
+        texture.needsUpdate = true;
+        return texture;
+      }
+
+      function makeMaterial(colors, options) {
+        return new THREE.MeshStandardMaterial(Object.assign({
+          map: makeGradientTexture(colors),
+          roughness: .42,
+          metalness: .02,
+          flatShading: false
+        }, options || {}));
+      }
+
+      function disposeMesh(mesh) {
+        scene.remove(mesh);
+        mesh.geometry.dispose();
+        if (mesh.material.map) mesh.material.map.dispose();
+        mesh.material.dispose();
+      }
+
+      function makeBlock(width, depth, y, x, z, colors) {
+        const mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(width, blockHeight, depth),
+          makeMaterial(colors)
+        );
+        mesh.position.set(x, y, z);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        scene.add(mesh);
+        return mesh;
+      }
+
+      function currentTop() {
+        return blocks[blocks.length - 1];
+      }
+
+      function colorsForLayer(layer) {
+        if (layer < palette.length) return palette[layer];
+        const hue = (layer * 137.508 + 24) % 360;
+        return [`hsl(${hue} 76% 85%)`, `hsl(${hue} 54% 55%)`];
+      }
+
+      function setScore(value) {
+        score = value;
+        scoreDisplay.textContent = numberFormat.format(score);
+        if (score > bestScore) {
+          bestScore = score;
+          bestScoreDisplay.textContent = numberFormat.format(bestScore);
+          try {
+            localStorage.setItem(BEST_SCORE_KEY, String(bestScore));
+            storageAvailable = true;
+          } catch {
+            storageAvailable = false;
+          }
+        }
+      }
+
+      function playSound(notes, duration, waveform) {
+        if (soundMuted || !audioContext || audioContext.state !== "running") return;
+        const now = audioContext.currentTime;
+        notes.forEach((frequency, index) => {
+          const start = now + index * .075;
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          oscillator.type = waveform || "sine";
+          oscillator.frequency.setValueAtTime(frequency, start);
+          gain.gain.setValueAtTime(.0001, start);
+          gain.gain.exponentialRampToValueAtTime(.13, start + .018);
+          gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+          oscillator.connect(gain);
+          gain.connect(audioContext.destination);
+          oscillator.start(start);
+          oscillator.stop(start + duration + .02);
+        });
+      }
+
+      function startAudio() {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+          soundToggle.disabled = true;
+          soundToggle.title = "الصوت غير مدعوم في هذا المتصفح";
+          soundToggle.setAttribute("aria-label", "الصوت غير مدعوم");
+          return;
+        }
+        if (!audioContext) audioContext = new AudioContextClass();
+        if (audioContext.state === "suspended") {
+          audioContext.resume().catch(error => {
+            console.error("تعذر تشغيل الصوت:", error);
+            soundToggle.title = "تعذر تشغيل الصوت في هذا المتصفح";
+          });
+        }
+      }
+
+      function updateSoundButton() {
+        const icon = soundMuted ? "🔇" : "🔊";
+        const label = soundMuted ? "تشغيل الصوت" : "كتم الصوت";
+        soundToggle.textContent = icon;
+        soundToggle.setAttribute("aria-label", label);
+        soundToggle.setAttribute("aria-pressed", String(soundMuted));
+        soundToggle.title = label;
+      }
+
+      function clearGameObjects() {
+        if (basePlatform) {
+          scene.remove(basePlatform);
+          basePlatform.geometry.dispose();
+          basePlatform.material.dispose();
+          basePlatform = null;
+        }
+        for (const block of blocks) {
+          disposeMesh(block.mesh);
+        }
+        blocks.length = 0;
+        for (const piece of fallingPieces) {
+          disposeMesh(piece.mesh);
+        }
+        fallingPieces.length = 0;
+        if (movingBlock) {
+          disposeMesh(movingBlock.mesh);
+          movingBlock = null;
+        }
+      }
+
+      function createBase() {
+        basePlatform = new THREE.Mesh(
+          new THREE.BoxGeometry(4.55, .36, 4.55),
+          new THREE.MeshStandardMaterial({ color: "#f9f3e9", roughness: .7 })
+        );
+        basePlatform.position.set(0, -.18, 0);
+        basePlatform.castShadow = true;
+        basePlatform.receiveShadow = true;
+        scene.add(basePlatform);
+
+        const first = makeBlock(startSize, startSize, blockHeight / 2, 0, 0, palette[0]);
+        blocks.push({ mesh: first, width: startSize, depth: startSize, x: 0, z: 0 });
+      }
+
+      function createMovingBlock() {
+        const top = currentTop();
+        const layer = blocks.length;
+        const axis = layer % 2 === 1 ? "x" : "z";
+        const direction = layer % 2 === 1 ? 1 : -1;
+        const width = top.width;
+        const depth = top.depth;
+        const color = colorsForLayer(layer);
+        const mesh = makeBlock(
+          width,
+          depth,
+          blocks.length * blockHeight + blockHeight / 2,
+          top.x,
+          top.z,
+          color
+        );
+        const center = axis === "x" ? top.x : top.z;
+        mesh.position[axis] = center - direction * 6.8;
+        movingBlock = { mesh, axis, direction, color };
+      }
+
+      function startGame() {
+        if (breakTimerExpired) return;
+        startAudio();
+        clearGameObjects();
+        setScore(0);
+        speed = 3.6;
+        cameraTarget.set(0, 1, 0);
+        camera.position.set(9, 9, 12);
+        camera.lookAt(cameraTarget);
+        createBase();
+        createMovingBlock();
+        state = "playing";
+        overlay.hidden = true;
+        resultSummary.hidden = true;
+        dialogIcon.textContent = "🏗️";
+        dialogTitle.textContent = "برج المكعبات";
+        dialogMessage.textContent = "أوقف المكعب فوق البرج، وحاول بناء أعلى برج ممكن!";
+        playButton.textContent = "ابدأ";
+        hint.textContent = "اضغط على الشاشة أو زر المسافة لإيقاف المكعب";
+      }
+
+      function endGame() {
+        state = "over";
+        playSound([392, 330, 262], .2, "triangle");
+        dialogIcon.textContent = "🧱";
+        dialogTitle.textContent = "انتهت اللعبة";
+        dialogMessage.textContent = "أحسنت المحاولة! هل تستطيع بناء برج أعلى؟";
+        finalScoreDisplay.textContent = numberFormat.format(score);
+        finalBestScoreDisplay.textContent = numberFormat.format(bestScore);
+        resultSummary.hidden = false;
+        playButton.textContent = "العب مرة أخرى";
+        overlay.hidden = false;
+        hint.textContent = storageAvailable
+          ? "أفضل نتيجة محفوظة على هذا الجهاز"
+          : "تعذر حفظ أفضل نتيجة في هذا المتصفح.";
+      }
+
+      function createFallingPiece(width, depth, x, z, y, colors) {
+        if (width < .025 || depth < .025) return;
+        const mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(width, blockHeight, depth),
+          makeMaterial(colors)
+        );
+        mesh.position.set(x, y, z);
+        mesh.castShadow = true;
+        scene.add(mesh);
+        fallingPieces.push({ mesh, velocityY: 0, rotationX: 0, rotationZ: 0 });
+      }
+
+      function dropOverhang(overlap, previous, moving, delta) {
+        const size = moving.axis === "x" ? moving.mesh.geometry.parameters.width : moving.mesh.geometry.parameters.depth;
+        const overhang = size - overlap;
+        if (overhang <= .005) return;
+        const side = Math.sign(delta);
+        const x = moving.mesh.position.x + (moving.axis === "x" ? side * overlap / 2 : 0);
+        const z = moving.mesh.position.z + (moving.axis === "z" ? side * overlap / 2 : 0);
+        const width = moving.axis === "x" ? overhang : previous.width;
+        const depth = moving.axis === "z" ? overhang : previous.depth;
+        createFallingPiece(width, depth, x, z, moving.mesh.position.y, moving.color);
+      }
+
+      function stopBlock() {
+        if (state !== "playing" || !movingBlock || breakTimerExpired) return;
+
+        const moving = movingBlock;
+        const previous = currentTop();
+        const previousAxis = moving.axis === "x" ? previous.x : previous.z;
+        const movingAxis = moving.mesh.position[moving.axis];
+        const delta = movingAxis - previousAxis;
+        const previousSize = moving.axis === "x" ? previous.width : previous.depth;
+        const movingSize = moving.axis === "x"
+          ? moving.mesh.geometry.parameters.width
+          : moving.mesh.geometry.parameters.depth;
+        const overlap = Math.min(previousSize, movingSize) - Math.abs(delta);
+
+        if (overlap <= .015) {
+          createFallingPiece(
+            moving.mesh.geometry.parameters.width,
+            moving.mesh.geometry.parameters.depth,
+            moving.mesh.position.x,
+            moving.mesh.position.z,
+            moving.mesh.position.y,
+            moving.color
+          );
+          disposeMesh(moving.mesh);
+          movingBlock = null;
+          endGame();
+          return;
+        }
+
+        const isPerfect = Math.abs(delta) <= .2;
+        if (isPerfect) {
+          const newMesh = makeBlock(
+            previous.width,
+            previous.depth,
+            moving.mesh.position.y,
+            previous.x,
+            previous.z,
+            moving.color
+          );
+          disposeMesh(moving.mesh);
+          movingBlock = null;
+          blocks.push({ mesh: newMesh, width: previous.width, depth: previous.depth, x: previous.x, z: previous.z });
+          setScore(score + 1);
+          speed = Math.min(speed + .22, 9.5);
+          hint.textContent = "ممتاز! تطابق مثالي ✨";
+          playSound([523.25, 659.25, 783.99], .24, "sine");
+          const top = currentTop();
+          cameraTarget.set(top.x, top.mesh.position.y + .2, top.z);
+          createMovingBlock();
+          return;
+        }
+
+        const adjustedOverlap = Math.min(overlap, previousSize);
+        dropOverhang(adjustedOverlap, previous, moving, delta);
+
+        const newWidth = moving.axis === "x" ? adjustedOverlap : previous.width;
+        const newDepth = moving.axis === "z" ? adjustedOverlap : previous.depth;
+        const newX = moving.axis === "x" ? (movingAxis + previous.x) / 2 : previous.x;
+        const newZ = moving.axis === "z" ? (movingAxis + previous.z) / 2 : previous.z;
+        const newMesh = makeBlock(
+          newWidth,
+          newDepth,
+          moving.mesh.position.y,
+          newX,
+          newZ,
+          moving.color
+        );
+
+        disposeMesh(moving.mesh);
+        movingBlock = null;
+        blocks.push({ mesh: newMesh, width: newWidth, depth: newDepth, x: newX, z: newZ });
+        setScore(score + 1);
+        speed = Math.min(speed + .22, 9.5);
+        hint.textContent = score % 5 === 0
+          ? `رائع! ${numberFormat.format(score)} مكعبات فوق بعضها`
+          : "أحسنت! أوقف المكعب التالي";
+        playSound([440, 554.37], .16, "triangle");
+
+        const top = currentTop();
+        cameraTarget.set(top.x, top.mesh.position.y + .2, top.z);
+        createMovingBlock();
+      }
+
+      function updateMovingBlock(deltaTime) {
+        if (state !== "playing" || !movingBlock) return;
+        const top = currentTop();
+        const center = movingBlock.axis === "x" ? top.x : top.z;
+        const position = movingBlock.mesh.position[movingBlock.axis];
+        const nextPosition = position + movingBlock.direction * speed * deltaTime;
+        const limit = 6.8;
+
+        if (nextPosition > center + limit) {
+          movingBlock.mesh.position[movingBlock.axis] = center + limit;
+          movingBlock.direction = -1;
+        } else if (nextPosition < center - limit) {
+          movingBlock.mesh.position[movingBlock.axis] = center - limit;
+          movingBlock.direction = 1;
+        } else {
+          movingBlock.mesh.position[movingBlock.axis] = nextPosition;
+        }
+      }
+
+      function updateFallingPieces(deltaTime) {
+        for (let index = fallingPieces.length - 1; index >= 0; index--) {
+          const piece = fallingPieces[index];
+          piece.velocityY -= 12 * deltaTime;
+          piece.mesh.position.y += piece.velocityY * deltaTime;
+          piece.rotationX += deltaTime * .9;
+          piece.rotationZ += deltaTime * 1.1;
+          piece.mesh.rotation.x = piece.rotationX;
+          piece.mesh.rotation.z = piece.rotationZ;
+          if (piece.mesh.position.y < cameraTarget.y - 14) {
+            disposeMesh(piece.mesh);
+            fallingPieces.splice(index, 1);
+          }
+        }
+      }
+
+      function animate(time) {
+        requestAnimationFrame(animate);
+        const deltaTime = lastFrameTime ? Math.min((time - lastFrameTime) / 1000, .04) : 0;
+        lastFrameTime = time;
+
+        updateMovingBlock(deltaTime);
+        updateFallingPieces(deltaTime);
+
+        const cameraOffset = new THREE.Vector3(8.5, 7.3, 10.5);
+        const desiredPosition = cameraTarget.clone().add(cameraOffset);
+        camera.position.lerp(desiredPosition, Math.min(1, deltaTime * 2.2));
+        camera.lookAt(cameraTarget);
+        renderer.render(scene, camera);
+      }
+
+      function resize() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(width, height);
+      }
+
+      playButton.addEventListener("click", startGame);
+      soundToggle.addEventListener("click", () => {
+        soundMuted = !soundMuted;
+        updateSoundButton();
+        if (!soundMuted) startAudio();
+      });
+      canvas.addEventListener("pointerdown", event => {
+        event.preventDefault();
+        stopBlock();
+      });
+      window.addEventListener("keydown", event => {
+        if (event.code !== "Space" || event.repeat) return;
+        const focusedButton = event.target instanceof Element ? event.target.closest("button") : null;
+        if (focusedButton && focusedButton.getClientRects().length) return;
+        event.preventDefault();
+        stopBlock();
+      });
+      window.addEventListener("resize", resize);
+
+      createBase();
+      requestAnimationFrame(animate);
+    })();
+  </script>
+  <script>
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      navigator.serviceWorker.register("./service-worker.js")
+        .catch(error => console.error("تعذر تسجيل عامل الخدمة:", error));
+    }
+  </script>
+</body>
+</html>

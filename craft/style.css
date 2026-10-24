@@ -1,0 +1,326 @@
+.craft-ui {
+  direction: rtl;
+  color: #f8fff8;
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+.craft-ui *,
+.craft-ui *::before,
+.craft-ui *::after {
+  box-sizing: border-box;
+}
+
+.craft-ui button {
+  font: inherit;
+}
+
+.craft-ui button:focus-visible {
+  outline: 3px solid #ffdf83;
+  outline-offset: 3px;
+}
+
+.craft-ui-scorebar {
+  position: fixed;
+  z-index: 9996;
+  top: max(16px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  display: flex;
+  gap: 8px;
+  padding: 9px 12px;
+  color: #f7fff8;
+  background: rgba(27, 43, 47, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 13px;
+  box-shadow: 0 6px 18px rgba(18, 32, 36, 0.2);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.craft-ui-scorebar span {
+  white-space: nowrap;
+}
+
+.craft-ui-scorebar strong {
+  margin-inline-start: 3px;
+  color: #ffe28a;
+  font-size: 14px;
+}
+
+.craft-ui-sound {
+  position: fixed;
+  z-index: 10002;
+  bottom: max(92px, env(safe-area-inset-bottom));
+  left: max(16px, env(safe-area-inset-left));
+  min-height: 40px;
+  padding: 8px 12px;
+  color: #f7fff8;
+  background: rgba(27, 43, 47, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(18, 32, 36, 0.2);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  font-size: 13px;
+}
+
+.craft-ui-sound:hover {
+  background: rgba(44, 65, 67, 0.94);
+}
+
+.craft-ui-screen {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(22px, env(safe-area-inset-top)) 18px max(22px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse at 50% 12%, rgba(181, 237, 207, 0.25), transparent 48%),
+    rgba(17, 34, 39, 0.72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.craft-ui-screen[hidden] {
+  display: none;
+}
+
+.craft-ui-card {
+  width: min(610px, 100%);
+  padding: clamp(24px, 5vw, 42px);
+  color: #29403d;
+  background:
+    radial-gradient(circle at 94% 5%, rgba(177, 240, 205, 0.45), transparent 34%),
+    linear-gradient(145deg, #fffef7, #f2f8e9);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 26px;
+  box-shadow: 0 24px 70px rgba(6, 22, 26, 0.38);
+  text-align: center;
+  animation: craft-card-in 300ms ease-out both;
+}
+
+.craft-ui-eyebrow {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 6px 12px;
+  color: #38735d;
+  background: #dff4e4;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.craft-ui-card h1,
+.craft-ui-card h2 {
+  margin: 0;
+  color: #244c42;
+}
+
+.craft-ui-card h1 {
+  font-size: clamp(32px, 8vw, 52px);
+  letter-spacing: -1.5px;
+}
+
+.craft-ui-card h2 {
+  font-size: clamp(25px, 6vw, 34px);
+}
+
+.craft-ui-lead {
+  margin: 12px 0 20px;
+  color: #5c706a;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.craft-ui-howto {
+  margin: 0 0 22px;
+  padding: 16px 18px;
+  background: rgba(225, 241, 223, 0.76);
+  border: 1px solid rgba(93, 144, 112, 0.14);
+  border-radius: 17px;
+  text-align: right;
+}
+
+.craft-ui-howto h2 {
+  margin-bottom: 9px;
+  font-size: 16px;
+}
+
+.craft-ui-howto ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0 20px 0 0;
+  color: #4d625d;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.craft-ui-howto li::marker {
+  color: #52a77a;
+}
+
+.craft-ui kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 1px 5px;
+  color: #36574e;
+  background: #fffef7;
+  border: 1px solid #c8d9cd;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  direction: ltr;
+  font: 700 11px Tahoma, Arial, sans-serif;
+  text-align: center;
+}
+
+.craft-ui-primary,
+.craft-ui-secondary {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  border-radius: 13px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  transition: transform 140ms ease, filter 140ms ease, background 140ms ease;
+}
+
+.craft-ui-primary {
+  color: #173d32;
+  background: linear-gradient(135deg, #a9edc5, #79d6a5);
+  border: 1px solid #70c994;
+  box-shadow: 0 6px 0 #58af7e, 0 10px 20px rgba(51, 139, 94, 0.18);
+}
+
+.craft-ui-primary:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.craft-ui-primary:active {
+  box-shadow: 0 2px 0 #58af7e;
+  transform: translateY(3px);
+}
+
+.craft-ui-secondary {
+  margin-top: 10px;
+  color: #557069;
+  background: transparent;
+  border: 1px solid #cfddd1;
+}
+
+.craft-ui-secondary:hover {
+  background: rgba(224, 239, 224, 0.75);
+}
+
+.craft-ui-compact-card {
+  width: min(410px, 100%);
+}
+
+.craft-ui-compact-card > p {
+  margin: 11px 0 21px;
+  color: #61736d;
+  line-height: 1.7;
+}
+
+.craft-ui-illustration {
+  margin-bottom: 12px;
+  font-size: 48px;
+  filter: drop-shadow(0 5px 5px rgba(47, 92, 73, 0.15));
+}
+
+.craft-ui-results {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px 18px;
+  align-items: center;
+  margin: 0 0 22px;
+  padding: 15px 17px;
+  color: #526862;
+  background: #e8f3e6;
+  border-radius: 15px;
+  text-align: right;
+}
+
+.craft-ui-results strong {
+  color: #35775a;
+  font-size: 20px;
+  text-align: left;
+}
+
+.craft-ui[data-state="start"] .craft-ui-scorebar,
+.craft-ui[data-state="paused"] .craft-ui-scorebar,
+.craft-ui[data-state="gameover"] .craft-ui-scorebar {
+  display: none;
+}
+
+.craft-ui-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes craft-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .craft-ui-scorebar {
+    top: max(10px, env(safe-area-inset-top));
+    left: 10px;
+    gap: 5px;
+    padding: 8px 9px;
+    font-size: 11px;
+  }
+
+  .craft-ui-sound {
+    bottom: max(82px, env(safe-area-inset-bottom));
+    left: 10px;
+    min-height: 36px;
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+
+  .craft-ui-card {
+    padding: 24px 19px;
+    border-radius: 21px;
+  }
+
+  .craft-ui-howto {
+    padding: 13px;
+  }
+
+  .craft-ui-howto ul {
+    gap: 6px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .craft-ui *,
+  .craft-ui *::before,
+  .craft-ui *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

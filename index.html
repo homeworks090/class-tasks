@@ -239,7 +239,30 @@
     .hero-copy { position: relative; z-index: 1; max-width: 580px; }
     .hero-kicker { margin: 0 0 4px; color: #a05e3d; font-size: .82rem; font-weight: 800; }
     .hero h2 { margin: 0; color: #563b2e; font-size: clamp(1.3rem, 3vw, 1.8rem); }
-    .hero p:last-child { max-width: 440px; margin: 7px 0 0; color: #785b49; font-size: .92rem; }
+    .hero-copy > p:last-of-type { max-width: 440px; margin: 7px 0 0; color: #785b49; font-size: .92rem; }
+
+    .break-link {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      margin-top: 12px;
+      color: #fffdf8;
+      background: #4a8576;
+      border: 1px solid rgba(255, 255, 255, .55);
+      border-radius: 12px;
+      box-shadow: 0 5px 12px rgba(53, 104, 89, .18);
+      font-size: .87rem;
+      font-weight: 800;
+      text-decoration: none;
+      transition: background .15s ease, transform .15s ease;
+    }
+
+    .break-link:hover { background: #397566; transform: translateY(-1px); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+    .craft-link { background: #6d6da8; }
+    .craft-link:hover { background: #58588f; }
 
     .hero-art {
       position: relative;
@@ -490,7 +513,8 @@
       .today-pill { gap: 5px; padding: 7px 9px; font-size: .7rem; }
       .hero { gap: 10px; padding: 17px; }
       .hero-art { width: 66px; height: 66px; flex-basis: 66px; border-width: 3px; border-radius: 22px; font-size: 2.3rem; }
-      .hero p:last-child { font-size: .82rem; }
+      .hero-copy > p:last-of-type { font-size: .82rem; }
+      .break-link { min-height: 38px; padding: 7px 12px; margin-top: 9px; font-size: .8rem; }
       .summary-card { flex-direction: column; align-items: flex-start; gap: 5px; }
       .summary-icon { width: 30px; height: 30px; flex-basis: 30px; font-size: .95rem; }
       .controls { align-items: stretch; flex-wrap: wrap; padding: 11px; }
@@ -534,6 +558,10 @@
           <p class="hero-kicker">مرحباً بكم في مساحة الشعبة</p>
           <h2>يوم دراسي منظم يبدأ من هنا ✨</h2>
           <p>تابعوا الواجبات والاختبارات والمشاريع القادمة، واستعدوا لكل موعد بكل سهولة.</p>
+          <div class="hero-actions">
+            <a class="break-link" href="./game.html" aria-label="ابدأ استراحة لعب لمدة خمس دقائق">🎮 استراحة</a>
+            <a class="break-link craft-link" href="./craft/index.html" aria-label="افتح لعبة جزيرة المكعبات">⛏️ جزيرة المكعبات</a>
+          </div>
         </div>
         <div class="hero-art" aria-hidden="true">📚</div>
       </section>
@@ -777,6 +805,12 @@
     sortOrder.addEventListener("change", renderTasks);
     refreshButton.addEventListener("click", loadTasks);
     loadTasks();
+  </script>
+  <script>
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      navigator.serviceWorker.register("./service-worker.js")
+        .catch(error => console.error("تعذر تسجيل عامل الخدمة:", error));
+    }
   </script>
 </body>
 </html>
