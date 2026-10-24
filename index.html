@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7ecdf">
+  <title>مهام الشعبة</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #493b31;
+      --muted: #88796d;
+      --surface: #fffdf9;
+      --background: #f7ecdf;
+      --line: #eee0d1;
+      --blue: #397b6d;
+      --red: #ba4e3e;
+      --red-bg: #fce8e2;
+      --orange: #a65e22;
+      --orange-bg: #fff0d8;
+      --green: #39765b;
+      --green-bg: #e7f1e5;
+      --shadow: 0 10px 26px rgba(103, 73, 48, .09), 0 2px 5px rgba(103, 73, 48, .05);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 72% 0%, rgba(255, 255, 255, .65), transparent 34rem),
+        var(--background);
+      color: var(--ink);
+      font-family: Tahoma, Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    button, select { font: inherit; }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 218px minmax(0, 1fr);
+      gap: 24px;
+      width: min(100% - 40px, 1240px);
+      margin: 0 auto;
+      padding: 22px 0 36px;
+      direction: rtl;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 22px;
+      display: flex;
+      min-height: calc(100vh - 44px);
+      flex-direction: column;
+      padding: 20px 14px;
+      background: #dce8dc;
+      border: 1px solid rgba(255, 255, 255, .72);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 3px 7px 18px;
+      color: #31584e;
+      font-size: 1.02rem;
+      font-weight: 800;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      background: #fffaf0;
+      border-radius: 13px;
+      box-shadow: 0 3px 8px rgba(63, 93, 75, .12);
+      font-size: 1.2rem;
+    }
+
+    .profile {
+      display: grid;
+      justify-items: center;
+      padding: 15px 8px 20px;
+      margin-bottom: 10px;
+      background: rgba(255, 253, 249, .58);
+      border-radius: 19px;
+      text-align: center;
+    }
+
+    .profile-avatar {
+      display: grid;
+      width: 72px;
+      height: 72px;
+      margin-bottom: 9px;
+      place-items: center;
+      background: #fae4d3;
+      border: 4px solid rgba(255, 255, 255, .75);
+      border-radius: 50%;
+      font-size: 2rem;
+    }
+
+    .profile strong { font-size: .95rem; }
+    .profile span { color: var(--muted); font-size: .78rem; }
+
+    .nav-label {
+      padding: 8px 10px 5px;
+      color: #788d7e;
+      font-size: .72rem;
+      font-weight: 800;
+    }
+
+    .side-nav {
+      display: grid;
+      gap: 6px;
+    }
+
+    .side-nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 43px;
+      padding: 8px 11px;
+      color: #48665a;
+      border-radius: 12px;
+      font-size: .87rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background .16s ease, transform .16s ease;
+    }
+
+    .side-nav a:hover { background: rgba(255, 255, 255, .58); }
+    .side-nav a:active { transform: translateY(1px); }
+    .side-nav a.active {
+      color: #355f52;
+      background: #fffaf2;
+      box-shadow: 0 4px 10px rgba(63, 93, 75, .12);
+    }
+
+    .nav-icon {
+      display: inline-grid;
+      width: 23px;
+      place-items: center;
+      font-size: 1rem;
+    }
+
+    .sidebar-spacer { flex: 1; min-height: 20px; }
+
+    .delegate-link {
+      display: block;
+      padding: 11px 10px;
+      color: #675342;
+      background: #f7d8c2;
+      border: 1px solid rgba(255, 255, 255, .75);
+      border-radius: 14px;
+      box-shadow: 0 4px 9px rgba(120, 81, 51, .09);
+      font-size: .79rem;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      transition: background .16s ease;
+    }
+
+    .delegate-link:hover { background: #f4cbb0; }
+
+    .main-content { min-width: 0; padding: 12px 0 20px; }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 21px;
+    }
+
+    .eyebrow {
+      margin: 0 0 3px;
+      color: #a56c43;
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 4vw, 2.35rem);
+      letter-spacing: -.04em;
+    }
+
+    .subtitle { margin: 4px 0 0; color: var(--muted); }
+
+    .today-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 13px;
+      color: #6f6558;
+      background: rgba(255, 253, 249, .75);
+      border: 1px solid rgba(255, 255, 255, .8);
+      border-radius: 999px;
+      font-size: .8rem;
+      white-space: nowrap;
+    }
+
+    .hero {
+      position: relative;
+      display: flex;
+      min-height: 174px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      overflow: hidden;
+      padding: 25px 30px;
+      margin-bottom: 18px;
+      background: linear-gradient(110deg, #f7d8c5 0%, #f8dfcb 56%, #f3d2b9 100%);
+      border: 1px solid rgba(255, 255, 255, .78);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      position: absolute;
+      top: -74px;
+      left: 17%;
+      width: 205px;
+      height: 205px;
+      background: rgba(255, 250, 239, .22);
+      border: 1px solid rgba(255, 255, 255, .25);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .hero-copy { position: relative; z-index: 1; max-width: 580px; }
+    .hero-kicker { margin: 0 0 4px; color: #a05e3d; font-size: .82rem; font-weight: 800; }
+    .hero h2 { margin: 0; color: #563b2e; font-size: clamp(1.3rem, 3vw, 1.8rem); }
+    .hero p:last-child { max-width: 440px; margin: 7px 0 0; color: #785b49; font-size: .92rem; }
+
+    .hero-art {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      width: 112px;
+      height: 112px;
+      flex: 0 0 112px;
+      place-items: center;
+      background: rgba(255, 250, 239, .7);
+      border: 5px solid rgba(255, 255, 255, .55);
+      border-radius: 36px 36px 30px 36px;
+      box-shadow: 0 9px 20px rgba(118, 75, 48, .1);
+      font-size: 3.8rem;
+      transform: rotate(-4deg);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 13px;
+      margin-bottom: 20px;
+    }
+
+    .summary-card {
+      display: flex;
+      min-height: 102px;
+      align-items: center;
+      gap: 13px;
+      padding: 15px;
+      border: 1px solid rgba(255, 255, 255, .82);
+      border-radius: 19px;
+      box-shadow: var(--shadow);
+    }
+
+    .summary-card:nth-child(1) { background: #e7ebd9; }
+    .summary-card:nth-child(2) { background: #f8dcd0; }
+    .summary-card:nth-child(3) { background: #f6e8c9; }
+
+    .summary-icon {
+      display: grid;
+      width: 43px;
+      height: 43px;
+      flex: 0 0 43px;
+      place-items: center;
+      background: rgba(255, 253, 249, .78);
+      border-radius: 14px;
+      box-shadow: 0 3px 8px rgba(86, 67, 48, .09);
+      font-size: 1.28rem;
+    }
+
+    .summary-label { display: block; color: #76695b; font-size: .77rem; }
+    .summary-value { display: block; margin-top: 1px; color: #493b31; font-size: 1.38rem; font-weight: 800; line-height: 1.3; }
+
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 2px 10px;
+    }
+
+    .section-heading h2 { margin: 0; font-size: 1.17rem; }
+    .section-heading p { margin: 0; color: var(--muted); font-size: .8rem; }
+
+    .controls {
+      display: flex;
+      align-items: end;
+      gap: 12px;
+      padding: 14px;
+      margin-bottom: 17px;
+      background: rgba(255, 253, 249, .83);
+      border: 1px solid rgba(255, 255, 255, .85);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      scroll-margin-top: 20px;
+    }
+
+    .filter {
+      display: grid;
+      flex: 1;
+      gap: 5px;
+      color: #74685b;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+
+    select {
+      width: 100%;
+      min-height: 42px;
+      padding: 7px 11px;
+      color: var(--ink);
+      background: #fffdfa;
+      border: 1px solid #eadccf;
+      border-radius: 11px;
+    }
+
+    .refresh {
+      min-height: 42px;
+      padding: 7px 15px;
+      color: #fffdf8;
+      background: #4a8576;
+      border: 0;
+      border-radius: 11px;
+      box-shadow: 0 4px 9px rgba(53, 104, 89, .16);
+      cursor: pointer;
+      font-weight: 700;
+      transition: background .15s ease, transform .15s ease;
+    }
+
+    .refresh:hover:not(:disabled) { background: #397566; }
+    .refresh:active:not(:disabled) { transform: translateY(1px); }
+    .refresh:disabled { cursor: wait; opacity: .7; }
+
+    button:focus-visible, select:focus-visible, a:focus-visible {
+      outline: 3px solid rgba(57, 123, 109, .35);
+      outline-offset: 2px;
+    }
+
+    .status {
+      padding: 13px 16px;
+      margin: 14px 0;
+      color: #74685b;
+      background: #fffdf9;
+      border: 1px solid #eee0d1;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(103, 73, 48, .05);
+    }
+
+    .status[hidden] { display: none; }
+    .status.error { color: #a13d32; background: #fff1ed; border-color: #f0cfc4; }
+
+    .task-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      scroll-margin-top: 20px;
+    }
+
+    .card {
+      min-width: 0;
+      padding: 18px;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, .9);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      transition: transform .16s ease, box-shadow .16s ease;
+    }
+
+    .card:hover { transform: translateY(-2px); box-shadow: 0 13px 29px rgba(103, 73, 48, .12); }
+
+    .card-top, .card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .badge, .countdown {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge { color: #5e6655; background: #eef0e4; }
+    .countdown.red { color: var(--red); background: var(--red-bg); }
+    .countdown.orange { color: var(--orange); background: var(--orange-bg); }
+    .countdown.green { color: var(--green); background: var(--green-bg); }
+
+    .card h2 {
+      margin: 14px 0 7px;
+      font-size: 1.08rem;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .notes {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: .9rem;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .card-bottom { padding-top: 12px; border-top: 1px solid #f0e7dd; }
+    .due-date { color: var(--muted); font-size: .82rem; }
+
+    .open-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 5px 11px;
+      color: #397565;
+      background: #e9f1e9;
+      border-radius: 9px;
+      font-size: .82rem;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .open-link:hover { background: #dceadd; }
+
+    .footer-note {
+      margin: 22px 0 0;
+      color: #9a8876;
+      font-size: .75rem;
+      text-align: center;
+    }
+
+    @media (max-width: 940px) {
+      .app-shell { grid-template-columns: 184px minmax(0, 1fr); gap: 17px; width: min(100% - 28px, 900px); }
+      .sidebar { padding-inline: 10px; }
+      .hero { padding-inline: 23px; }
+    }
+
+    @media (max-width: 700px) {
+      .app-shell { display: flex; width: min(100% - 24px, 580px); flex-direction: column; gap: 13px; padding-top: 12px; }
+      .sidebar { position: static; min-height: 0; padding: 10px 12px; border-radius: 19px; }
+      .brand { padding: 1px 3px 9px; }
+      .profile, .nav-label, .sidebar-spacer { display: none; }
+      .side-nav { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 1px; }
+      .side-nav a { min-height: 38px; flex: 0 0 auto; padding: 6px 10px; font-size: .8rem; }
+      .nav-icon { width: auto; }
+      .delegate-link { display: block; width: fit-content; margin: 8px 0 0 auto; padding: 7px 10px; font-size: .75rem; }
+      .main-content { width: 100%; padding-top: 3px; }
+      .header { margin-bottom: 15px; }
+      .hero { min-height: 150px; padding: 20px; border-radius: 20px; }
+      .hero-art { width: 84px; height: 84px; flex-basis: 84px; border-radius: 27px; font-size: 2.9rem; }
+      .summary-grid { gap: 9px; margin-bottom: 17px; }
+      .summary-card { min-height: 88px; gap: 8px; padding: 11px 9px; border-radius: 16px; }
+      .summary-icon { width: 35px; height: 35px; flex-basis: 35px; border-radius: 11px; font-size: 1.05rem; }
+      .summary-label { font-size: .69rem; }
+      .summary-value { font-size: 1.2rem; }
+      .task-list { grid-template-columns: 1fr; gap: 11px; }
+      .card { padding: 16px; border-radius: 18px; }
+    }
+
+    @media (max-width: 430px) {
+      .app-shell { width: min(100% - 18px, 580px); }
+      .header { align-items: flex-start; }
+      .today-pill { gap: 5px; padding: 7px 9px; font-size: .7rem; }
+      .hero { gap: 10px; padding: 17px; }
+      .hero-art { width: 66px; height: 66px; flex-basis: 66px; border-width: 3px; border-radius: 22px; font-size: 2.3rem; }
+      .hero p:last-child { font-size: .82rem; }
+      .summary-card { flex-direction: column; align-items: flex-start; gap: 5px; }
+      .summary-icon { width: 30px; height: 30px; flex-basis: 30px; font-size: .95rem; }
+      .controls { align-items: stretch; flex-wrap: wrap; padding: 11px; }
+      .filter { flex-basis: 100%; }
+      .refresh { width: 100%; }
+      .section-heading { align-items: flex-start; flex-direction: column; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell" id="top">
+    <aside class="sidebar" aria-label="التنقل">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">📚</span><span>مساحة الشعبة</span></div>
+      <div class="profile">
+        <div class="profile-avatar" aria-hidden="true">🎓</div>
+        <strong>أهلاً بكم 👋</strong>
+        <span>هنا تبدأ متابعة مهامكم</span>
+      </div>
+      <span class="nav-label">القائمة الرئيسية</span>
+      <nav class="side-nav" aria-label="روابط الصفحة">
+        <a class="active" href="#top"><span class="nav-icon" aria-hidden="true">🏠</span>الرئيسية</a>
+        <a href="#task-list"><span class="nav-icon" aria-hidden="true">📋</span>المهام القادمة</a>
+        <a href="#task-controls"><span class="nav-icon" aria-hidden="true">⚙️</span>تصفية المهام</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <a class="delegate-link" href="https://docs.google.com/spreadsheets/d/1k4CHyLuBhYljFqB2zhnGd63oFdR3U-jyHJE1BLFZLtg/edit" target="_blank" rel="noopener noreferrer">✏️ للمندوب: إضافة مهمة</a>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div>
+          <p class="eyebrow">لوحة الشعبة الدراسية</p>
+          <h1>مهام الشعبة</h1>
+          <p class="subtitle">كل مواعيدكم القادمة في مكان واحد.</p>
+        </div>
+        <span class="today-pill"><span aria-hidden="true">🌤️</span> خططوا لأسبوعكم</span>
+      </header>
+
+      <section class="hero" aria-label="ترحيب">
+        <div class="hero-copy">
+          <p class="hero-kicker">مرحباً بكم في مساحة الشعبة</p>
+          <h2>يوم دراسي منظم يبدأ من هنا ✨</h2>
+          <p>تابعوا الواجبات والاختبارات والمشاريع القادمة، واستعدوا لكل موعد بكل سهولة.</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">📚</div>
+      </section>
+
+      <section class="summary-grid" aria-label="ملخص المهام">
+        <article class="summary-card">
+          <span class="summary-icon" aria-hidden="true">📝</span>
+          <div><span class="summary-label">المهام القادمة</span><strong class="summary-value" id="upcoming-count">—</strong></div>
+        </article>
+        <article class="summary-card">
+          <span class="summary-icon" aria-hidden="true">⏰</span>
+          <div><span class="summary-label">خلال ٣ أيام</span><strong class="summary-value" id="urgent-count">—</strong></div>
+        </article>
+        <article class="summary-card">
+          <span class="summary-icon" aria-hidden="true">📖</span>
+          <div><span class="summary-label">المواد</span><strong class="summary-value" id="subject-count">—</strong></div>
+        </article>
+      </section>
+
+      <section id="task-controls" aria-labelledby="tasks-heading">
+        <div class="section-heading">
+          <h2 id="tasks-heading">المهام القادمة</h2>
+          <p>رتّبوا القائمة أو اختاروا مادة محددة</p>
+        </div>
+        <div class="controls" aria-label="خيارات المهام">
+          <label class="filter" for="subject-filter">
+            <span>تصفية حسب المادة</span>
+            <select id="subject-filter">
+              <option value="">كل المواد</option>
+            </select>
+          </label>
+          <label class="filter" for="sort-order">
+            <span>ترتيب المهام</span>
+            <select id="sort-order">
+              <option value="date">الأقرب موعداً</option>
+              <option value="type">حسب نوع المهمة</option>
+            </select>
+          </label>
+          <button class="refresh" id="refresh-button" type="button">↻ تحديث البيانات</button>
+        </div>
+      </section>
+
+      <p class="status" id="status" role="status" aria-live="polite" hidden></p>
+      <section class="task-list" id="task-list" aria-label="قائمة المهام القادمة"></section>
+      <p class="footer-note">نتمنى لكم فصلاً دراسياً مليئاً بالإنجازات 🌱</p>
+    </main>
+  </div>
+
+  <script>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSczaR3l-jELORR4iYagySb_LCY1FHB38f4QS561auZzYN-3s33Xz6lF9xxZ_bVjrYHxZzxEBBb9zY2/pub?gid=321184310&single=true&output=csv";
+    const TYPE_ICONS = {
+      "واجب": "📝",
+      "كويز": "🧠",
+      "مشروع": "🚀",
+      "اختبار": "📋"
+    };
+
+    const taskList = document.getElementById("task-list");
+    const statusMessage = document.getElementById("status");
+    const subjectFilter = document.getElementById("subject-filter");
+    const sortOrder = document.getElementById("sort-order");
+    const refreshButton = document.getElementById("refresh-button");
+    const upcomingCount = document.getElementById("upcoming-count");
+    const urgentCount = document.getElementById("urgent-count");
+    const subjectCount = document.getElementById("subject-count");
+    let tasks = [];
+
+    function showStatus(message, isError) {
+      statusMessage.textContent = message;
+      statusMessage.classList.toggle("error", isError);
+      statusMessage.hidden = false;
+    }
+
+    function clearStatus() {
+      statusMessage.textContent = "";
+      statusMessage.classList.remove("error");
+      statusMessage.hidden = true;
+    }
+
+    function cleanRow(row) {
+      const normalized = {};
+      for (const [key, value] of Object.entries(row)) {
+        normalized[(key || "").replace(/^\uFEFF/, "").trim()] = typeof value === "string" ? value.trim() : "";
+      }
+      return normalized;
+    }
+
+    function parseDueDate(value) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
+      if (!match) return null;
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      const timestamp = Date.UTC(year, month - 1, day);
+      const date = new Date(timestamp);
+      if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+      return timestamp;
+    }
+
+    function getTodayTimestamp() {
+      const now = new Date();
+      return Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    }
+
+    function safeLink(value) {
+      if (!value) return "";
+      try {
+        const url = new URL(value);
+        return url.protocol === "https:" || url.protocol === "http:" ? url.href : "";
+      } catch {
+        return "";
+      }
+    }
+
+    function makeElement(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text) element.textContent = text;
+      return element;
+    }
+
+    function makeCard(task) {
+      const card = makeElement("article", "card");
+      const top = makeElement("div", "card-top");
+      const icon = TYPE_ICONS[task.type] || "📌";
+      top.append(makeElement("span", "badge", `${icon} ${task.type || "مهمة"}`));
+
+      const daysLeft = Math.round((task.dueTimestamp - getTodayTimestamp()) / 86400000);
+      const countdownText = daysLeft === 0 ? "اليوم" : daysLeft === 1 ? "غداً" : `بعد ${daysLeft} أيام`;
+      const color = daysLeft <= 1 ? "red" : daysLeft <= 3 ? "orange" : "green";
+      top.append(makeElement("span", `countdown ${color}`, countdownText));
+
+      const title = makeElement("h2", "", task.title || "مهمة بدون عنوان");
+      card.append(top, title);
+      if (task.notes) card.append(makeElement("p", "notes", task.notes));
+
+      const bottom = makeElement("div", "card-bottom");
+      const dueDate = new Date(task.dueTimestamp).toLocaleDateString("ar", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "UTC"
+      });
+      bottom.append(makeElement("span", "due-date", `التسليم: ${dueDate}`));
+      const link = safeLink(task.link);
+      if (link) {
+        const anchor = makeElement("a", "open-link", "فتح الرابط");
+        anchor.href = link;
+        anchor.target = "_blank";
+        anchor.rel = "noopener noreferrer";
+        bottom.append(anchor);
+      }
+      card.append(bottom);
+      return card;
+    }
+
+    function renderTasks() {
+      const today = getTodayTimestamp();
+      upcomingCount.textContent = String(tasks.length);
+      urgentCount.textContent = String(tasks.filter(task => task.dueTimestamp - today <= 3 * 86400000).length);
+      subjectCount.textContent = String(new Set(tasks.map(task => task.subject).filter(Boolean)).size);
+
+      const selectedSubject = subjectFilter.value;
+      const visibleTasks = tasks
+        .filter(task => !selectedSubject || task.subject === selectedSubject);
+      if (sortOrder.value === "type") {
+        const typeOrder = ["واجب", "كويز", "مشروع", "اختبار"];
+        visibleTasks.sort((a, b) => {
+          const aOrder = typeOrder.indexOf(a.type);
+          const bOrder = typeOrder.indexOf(b.type);
+          const aRank = aOrder === -1 ? typeOrder.length : aOrder;
+          const bRank = bOrder === -1 ? typeOrder.length : bOrder;
+          return aRank - bRank ||
+            a.type.localeCompare(b.type, "ar") ||
+            a.dueTimestamp - b.dueTimestamp;
+        });
+      } else {
+        visibleTasks.sort((a, b) => a.dueTimestamp - b.dueTimestamp);
+      }
+      taskList.replaceChildren(...visibleTasks.map(makeCard));
+      if (!visibleTasks.length && !statusMessage.classList.contains("error") && !refreshButton.disabled) {
+        showStatus(tasks.length ? "لا توجد مهام لهذه المادة." : "لا توجد مهام قادمة حالياً.", false);
+      }
+    }
+
+    function updateSubjectOptions() {
+      const previousValue = subjectFilter.value;
+      const subjects = [...new Set(tasks.map(task => task.subject).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar"));
+      subjectFilter.replaceChildren(new Option("كل المواد", ""));
+      for (const subject of subjects) subjectFilter.add(new Option(subject, subject));
+      subjectFilter.value = subjects.includes(previousValue) ? previousValue : "";
+    }
+
+    function loadTasks() {
+      if (!window.Papa) {
+        showStatus("تعذر تحميل أداة قراءة البيانات. تحقق من اتصالك بالإنترنت ثم أعد المحاولة.", true);
+        return;
+      }
+
+      refreshButton.disabled = true;
+      refreshButton.textContent = "جاري التحديث...";
+      taskList.replaceChildren();
+      showStatus("جاري التحميل...", false);
+
+      Papa.parse(CSV_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: "greedy",
+        complete(results) {
+          const rows = results.data.map(cleanRow).filter(row => Object.values(row).some(Boolean));
+          const today = getTodayTimestamp();
+          tasks = rows
+            .map(row => ({
+              subject: row["المادة"] || "",
+              type: row["النوع"] || "",
+              title: row["العنوان"] || "",
+              dueTimestamp: parseDueDate(row["تاريخ التسليم (بصيغة YYYY-MM-DD)"] || row["تاريخ التسليم"]),
+              notes: row["ملاحظات"] || "",
+              link: row["رابط"] || ""
+            }))
+            .filter(task => task.dueTimestamp !== null && task.dueTimestamp >= today);
+          updateSubjectOptions();
+          clearStatus();
+          refreshButton.disabled = false;
+          refreshButton.textContent = "تحديث البيانات";
+          renderTasks();
+        },
+        error(error) {
+          tasks = [];
+          taskList.replaceChildren();
+          updateSubjectOptions();
+          renderTasks();
+          showStatus(`تعذر تحميل البيانات. تحقق من اتصالك بالإنترنت وحاول مجدداً. (${error.message || "فشل الاتصال"})`, true);
+          refreshButton.disabled = false;
+          refreshButton.textContent = "تحديث البيانات";
+        }
+      });
+    }
+
+    subjectFilter.addEventListener("change", renderTasks);
+    sortOrder.addEventListener("change", renderTasks);
+    refreshButton.addEventListener("click", loadTasks);
+    loadTasks();
+  </script>
+</body>
+</html>
